@@ -36,6 +36,7 @@ export default async function P() {
           Create draft
         </SubmitButton>
       </form>
+      {/* table */}
       <table className="mt-6 w-full text-sm">
         <tbody>
           {ps.map((p) => (
