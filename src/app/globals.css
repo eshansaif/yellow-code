@@ -34,3 +34,8 @@ a,button{transition:background-color .25s ease,color .25s ease,border-color .25s
 .adm tbody tr:hover{background:#fbf9f4}
 .adm ul.space-y-2>li,.adm ul.space-y-4>li{background:#fff;border:1px solid #e7e0d2;border-radius:12px;padding:.75rem 1rem}
 .adm a.underline{text-underline-offset:3px}
+
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.float{animation:float 7s ease-in-out infinite}
+@keyframes marquee{to{transform:translateX(-50%)}}
+.marquee{animation:marquee 40s linear infinite}
