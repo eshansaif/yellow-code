@@ -1,0 +1,297 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Status {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum QuoteStatus {
+  NEW
+  REVIEWING
+  CONTACTED
+  QUOTED
+  SAMPLE_REQUESTED
+  SAMPLE_SENT
+  APPROVED
+  PRODUCTION
+  COMPLETED
+  CANCELLED
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+  SALES
+}
+
+enum ImageType {
+  COVER
+  GALLERY
+  DETAIL
+  APPLICATION
+  TECHNICAL
+}
+
+model AdminUser {
+  id String @id @default(cuid())
+  email String @unique
+  name String
+  passwordHash String
+  role Role @default(EDITOR)
+  notes QuoteNote[]
+  assigned QuoteRequest[]
+  createdAt DateTime @default(now())
+}
+
+model Media {
+  id String @id @default(cuid())
+  url String
+  publicId String @unique
+  alt String @default("")
+  caption String?
+  title String?
+  tags String[]
+  folder String?
+  width Int?
+  height Int?
+  createdAt DateTime @default(now())
+  images ProductImage[]
+}
+
+model Category {
+  id String @id @default(cuid())
+  slug String @unique
+  name String
+  description String?
+  parentId String?
+  parent Category? @relation("Tree", fields: [parentId], references: [id])
+  children Category[] @relation("Tree")
+  coverId String?
+  sortOrder Int @default(0)
+  status Status @default(DRAFT)
+  products Product[]
+  seoTitle String?
+  seoDescription String?
+  createdAt DateTime @default(now())
+  @@index([status, sortOrder])
+}
+
+model Service {
+  id String @id @default(cuid())
+  slug String @unique
+  name String
+  description String?
+  body String?
+  sortOrder Int @default(0)
+  status Status @default(DRAFT)
+  seoTitle String?
+  seoDescription String?
+  createdAt DateTime @default(now())
+}
+
+model Product {
+  id String @id @default(cuid())
+  slug String
+  name String
+  tagline String?
+  shortDescription String?
+  longDescription String?
+  categoryId String
+  category Category @relation(fields: [categoryId], references: [id])
+  status Status @default(DRAFT)
+  featured Boolean @default(false)
+  sortOrder Int @default(0)
+  seoTitle String?
+  seoDescription String?
+  ogMediaId String?
+  images ProductImage[]
+  specs ProductSpec[]
+  applications ProductApplication[]
+  options ProductOption[]
+  faqs ProductFaq[]
+  quoteItems QuoteItem[]
+  related Product[] @relation("Related")
+  relatedBy Product[] @relation("Related")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([categoryId, slug])
+  @@index([status, featured])
+  @@index([categoryId])
+}
+
+model ProductImage {
+  id String @id @default(cuid())
+  productId String
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  mediaId String
+  media Media @relation(fields: [mediaId], references: [id])
+  type ImageType @default(GALLERY)
+  featured Boolean @default(false)
+  sortOrder Int @default(0)
+  @@index([productId, sortOrder])
+}
+
+model ProductSpec {
+  id String @id @default(cuid())
+  productId String
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  label String
+  value String
+  sortOrder Int @default(0)
+}
+
+model ProductApplication {
+  id String @id @default(cuid())
+  productId String
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name String
+}
+
+model ProductOption {
+  id String @id @default(cuid())
+  productId String
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name String
+  values String[]
+  sortOrder Int @default(0)
+}
+
+model ProductFaq {
+  id String @id @default(cuid())
+  productId String
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  question String
+  answer String
+  sortOrder Int @default(0)
+}
+
+model QuoteRequest {
+  id String @id @default(cuid())
+  seq Int @unique @default(autoincrement())
+  status QuoteStatus @default(NEW)
+  mode String
+  name String
+  company String
+  email String
+  phone String
+  country String
+  city String?
+  jobTitle String?
+  quantity Int?
+  unit String?
+  deadline DateTime?
+  targetMarket String?
+  details Json?
+  message String?
+  contactMethod String?
+  assignedToId String?
+  assignedTo AdminUser? @relation(fields: [assignedToId], references: [id])
+  items QuoteItem[]
+  attachments QuoteAttachment[]
+  notes QuoteNote[]
+  createdAt DateTime @default(now())
+  @@index([status, createdAt])
+  @@index([email])
+}
+
+model QuoteItem {
+  id String @id @default(cuid())
+  quoteId String
+  quote QuoteRequest @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  productId String?
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName String
+}
+
+model QuoteAttachment {
+  id String @id @default(cuid())
+  quoteId String
+  quote QuoteRequest @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  url String
+  fileName String
+  mime String
+  size Int
+}
+
+model QuoteNote {
+  id String @id @default(cuid())
+  quoteId String
+  quote QuoteRequest @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  authorId String
+  author AdminUser @relation(fields: [authorId], references: [id])
+  body String
+  createdAt DateTime @default(now())
+}
+
+model ContactMessage {
+  id String @id @default(cuid())
+  name String
+  email String
+  phone String?
+  message String
+  handled Boolean @default(false)
+  createdAt DateTime @default(now())
+  @@index([handled, createdAt])
+}
+
+model Client {
+  id String @id @default(cuid())
+  name String
+  logoUrl String?
+  website String?
+  industry String?
+  testimonial String?
+  published Boolean @default(false)
+  sortOrder Int @default(0)
+}
+
+model Certification {
+  id String @id @default(cuid())
+  name String
+  issuer String?
+  fileUrl String?
+  published Boolean @default(false)
+}
+
+model ProcessStep {
+  id String @id @default(cuid())
+  kind String
+  title String
+  body String?
+  sortOrder Int @default(0)
+}
+
+model Article {
+  id String @id @default(cuid())
+  slug String @unique
+  title String
+  excerpt String?
+  content String
+  coverUrl String?
+  author String?
+  status Status @default(DRAFT)
+  publishedAt DateTime?
+  seoTitle String?
+  seoDescription String?
+}
+
+model PageContent {
+  id String @id @default(cuid())
+  key String @unique
+  data Json
+  enabled Boolean @default(true)
+  sortOrder Int @default(0)
+}
+
+model SiteSetting {
+  key String @id
+  value Json
+}

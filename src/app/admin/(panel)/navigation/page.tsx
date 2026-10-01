@@ -1,0 +1,5 @@
+import SubmitButton from "@/components/admin/SubmitButton";
+import { db } from "@/lib/db"; import { saveSite } from "../actions";
+export default async function N() { const r = await db.siteSetting.findUnique({ where: { key: "site" } }); const v = (r?.value ?? {}) as { footerText?: string; links?: { label: string; href: string }[] }; const I = "mt-1 w-full rounded-lg border border-line bg-white px-3 py-2 outline-none focus:border-ink";
+  return <form action={saveSite} className="max-w-xl space-y-4"><h1 className="text-3xl font-bold">Footer and links</h1><label className="block text-sm">Footer description<textarea name="footerText" defaultValue={v.footerText ?? ""} rows={3} className={I}/></label>
+    <label className="block text-sm">Extra footer links, one per line as “Label | /path or https://…”<textarea name="links" rows={5} defaultValue={(v.links ?? []).map(l => `${l.label} | ${l.href}`).join("\n")} className={I}/></label><SubmitButton className="rounded-full bg-ink text-paper px-6 py-2.5">Save</SubmitButton></form>; }

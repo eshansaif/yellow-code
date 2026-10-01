@@ -1,0 +1,9 @@
+import SubmitButton from "@/components/admin/SubmitButton";
+import { db } from "@/lib/db"; import { saveHomepage } from "../actions"; import { HOME_SECTIONS } from "@/lib/home";
+const defaults = { headline: "Trims made to carry your brand.", sub: "Woven and printed labels, hang tags, patches and custom trims, manufactured in Bangladesh for apparel brands and buyers.", cta1Label: "Explore products", cta1Url: "/products", cta2Label: "Request a quote", cta2Url: "/request-a-quote", closing: "Tell us what you need. We'll quote it." };
+export default async function H() { const r = await db.pageContent.findUnique({ where: { key: "home" } }); const d = (r?.data ?? {}) as { sections?: { id: string; enabled: boolean }[]; hero?: Record<string, string> };
+  const order = d.sections?.length ? d.sections : HOME_SECTIONS.map(id => ({ id, enabled: true })); const h = { ...defaults, ...d.hero }; const I = "mt-1 w-full rounded-lg border border-line bg-white px-3 py-2 outline-none focus:border-ink";
+  return <form action={saveHomepage} className="max-w-2xl space-y-4"><h1 className="text-3xl font-bold">Homepage</h1>
+    <fieldset className="border border-line p-4"><legend className="px-2 text-sm">Sections: lower number shows first</legend>{order.map((s, i) => <div key={s.id} className="flex items-center gap-4 py-1 text-sm"><input type="number" name={`order_${s.id}`} defaultValue={i + 1} className="w-16 border border-line px-2 py-1" aria-label={`${s.id} order`}/><label className="flex gap-2 capitalize"><input type="checkbox" name={`on_${s.id}`} defaultChecked={s.enabled}/>{s.id}</label></div>)}</fieldset>
+    {(["headline","sub","cta1Label","cta1Url","cta2Label","cta2Url","closing"] as const).map(k => <label key={k} className="block text-sm">{k}<input name={k} defaultValue={h[k]} className={I}/></label>)}
+    <SubmitButton className="rounded-full bg-ink text-paper px-6 py-2.5">Save homepage</SubmitButton></form>; }

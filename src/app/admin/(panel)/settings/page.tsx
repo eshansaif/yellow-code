@@ -1,0 +1,4 @@
+import SubmitButton from "@/components/admin/SubmitButton";
+import { db } from "@/lib/db"; import { saveContact } from "../actions";
+export default async function S() { const r = await db.siteSetting.findUnique({ where:{key:"contact"} }); const v = (r?.value ?? {}) as Record<string,string>; const I="mt-1 w-full rounded-lg border border-line bg-white px-3 py-2 outline-none focus:border-ink";
+  return <form action={saveContact} className="max-w-xl space-y-4"><h1 className="text-3xl font-bold">Contact settings</h1>{(["office","factory","phone","email","hours"] as const).map(k=><label key={k} className="block text-sm capitalize">{k}<textarea name={k} defaultValue={v[k]??""} rows={k==="office"||k==="factory"?3:1} className={I}/></label>)}<SubmitButton className="rounded-full bg-ink text-paper px-6 py-2.5">Save</SubmitButton></form>; }

@@ -1,0 +1,1 @@
+export default function robots() { const b = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.yellowcodebd.com"; return { rules:{userAgent:"*",allow:"/",disallow:["/admin"]}, sitemap:`${b}/sitemap.xml` }; }

@@ -1,0 +1,2 @@
+const tone: Record<string, string> = { PUBLISHED: "bg-emerald-100 text-emerald-800", COMPLETED: "bg-emerald-100 text-emerald-800", DRAFT: "bg-neutral-200 text-neutral-700", ARCHIVED: "bg-neutral-200 text-neutral-600", HIDDEN: "bg-neutral-200 text-neutral-700", NEW: "bg-yellow-200 text-yellow-900", CANCELLED: "bg-red-100 text-red-800" };
+export default function Badge({ s }: { s: string }) { return <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${tone[s] ?? "bg-sky-100 text-sky-800"}`}>{s.replace(/_/g, " ")}</span>; }

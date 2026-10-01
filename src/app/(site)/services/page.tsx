@@ -1,0 +1,4 @@
+import Link from "next/link"; import { db } from "@/lib/db"; export const revalidate = 300; export const metadata = { title: "Services", alternates: { canonical: "/services" } };
+export default async function S() { const rows = await db.service.findMany({ where:{status:"PUBLISHED"}, orderBy:{sortOrder:"asc"} });
+  return <main className="max-w-7xl mx-auto px-6 py-16"><h1 className="text-5xl md:text-7xl font-semibold tracking-tight">Services</h1>{rows.length===0&&<p className="mt-8 text-stone">No services published yet.</p>}
+    <ul className="mt-12 grid md:grid-cols-3 gap-4">{rows.map(r=><li key={r.id} className="rounded-2xl border border-line bg-white overflow-hidden"><Link href={`/services/${r.slug}`} className="block p-6 min-h-44 hover:bg-yc transition-colors"><h2 className="text-2xl font-bold">{r.name}</h2><p className="mt-2 text-sm">{r.description}</p></Link></li>)}</ul></main>; }
