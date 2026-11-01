@@ -39,3 +39,21 @@ a,button{transition:background-color .25s ease,color .25s ease,border-color .25s
 .float{animation:float 7s ease-in-out infinite}
 @keyframes marquee{to{transform:translateX(-50%)}}
 .marquee{animation:marquee 40s linear infinite}
+
+@page{size:A4;margin:12mm}
+@media print{body{background:#fff!important}}
+
+.adm-scroll{overflow-x:auto;max-width:100%;-webkit-overflow-scrolling:touch}
+.adm-scroll>table{min-width:640px}
+.adm form.flex>.relative{flex:1 1 11rem}
+.adm .adm-scroll input{min-width:6rem}
+
+/* ---------- Toasts ---------- */
+.toasts{position:fixed;bottom:1.25rem;right:1.25rem;z-index:100;display:flex;flex-direction:column;gap:.5rem;width:min(24rem,calc(100vw - 2.5rem))}
+.toast{display:flex;align-items:flex-start;gap:.65rem;background:#16130d;color:#f7f4ed;border-radius:14px;padding:.85rem 1rem;font-size:14px;font-weight:500;line-height:1.45;box-shadow:0 14px 34px -14px rgba(22,19,13,.55);animation:toast-in .22s ease}
+.toast-dot{margin-top:.32rem;flex:none;width:.55rem;height:.55rem;border-radius:99px;background:#f2c10e}
+.toast-ok .toast-dot{background:#7fd7ac}
+.toast-err{background:#3f1512;border:1px solid #c0362a;color:#ffe7e0}
+.toast-err .toast-dot{background:#ff9382}
+.toast-info .toast-dot{background:#9bb7d4}
+@keyframes toast-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}

@@ -1,73 +1,10 @@
-import Badge from "@/components/admin/Badge";
-import SubmitButton from "@/components/admin/SubmitButton";
-import SearchSelect from "@/components/SearchSelect";
-import { db } from "@/lib/db";
-import { saveProduct, setStatus } from "../actions";
 import Link from "next/link";
-export default async function P() {
-  const [ps, cs] = await Promise.all([
-    db.product.findMany({
-      include: { category: true },
-      orderBy: { createdAt: "desc" },
-    }),
-    db.category.findMany({ orderBy: { name: "asc" } }),
-  ]);
-  return (
-    <>
-      <h1 className="text-3xl font-bold">Products</h1>
-      <form action={saveProduct} className="mt-6 flex flex-wrap gap-2">
-        <input
-          name="name"
-          required
-          placeholder="Product name"
-          className="rounded-lg border border-line bg-white px-3 py-2 outline-none focus:border-ink"
-        />
-        <SearchSelect
-          name="categoryId"
-          required
-          options={cs.map((c) => ({ value: c.id, label: c.name }))}
-        />
-        <input
-          name="shortDescription"
-          placeholder="Short description"
-          className="flex-1 rounded-lg border border-line bg-white px-3 py-2 outline-none focus:border-ink"
-        />
-        <SubmitButton className="rounded-full bg-ink text-paper px-4">
-          Create draft
-        </SubmitButton>
-      </form>
-      {/* table */}
-      <table className="mt-6 w-full text-sm">
-        <tbody>
-          {ps.map((p) => (
-            <tr key={p.id} className="border-t border-line">
-              <td className="py-2">
-                <Link className="underline" href={`/admin/products/${p.id}`}>
-                  {p.name}
-                </Link>
-              </td>
-              <td>{p.category.name}</td>
-              <td>
-                <Badge s={p.status} />
-              </td>
-              <td>
-                <form
-                  action={setStatus.bind(
-                    null,
-                    "product",
-                    p.id,
-                    p.status === "PUBLISHED" ? "DRAFT" : "PUBLISHED",
-                  )}
-                >
-                  <SubmitButton className="underline">
-                    {p.status === "PUBLISHED" ? "Unpublish" : "Publish"}
-                  </SubmitButton>
-                </form>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </>
-  );
-}
+import { db } from "@/lib/db"; import FilterBar from "@/components/FilterBar"; import Pagination from "@/components/Pagination"; import Badge from "@/components/admin/Badge"; import SubmitButton from "@/components/admin/SubmitButton"; import { pg, ci, type SP } from "@/lib/list";
+import SearchSelect from "@/components/SearchSelect"; import { ToastForm } from "@/components/admin/ToastForm"; import { saveProduct, setStatus } from "../actions";
+export default async function P({ searchParams }: { searchParams: Promise<SP> }) { const sp = await searchParams; const { page, skip, take } = pg(sp, 15);
+  const where = { ...(sp.category ? { categoryId: sp.category } : {}), ...(sp.status ? { status: sp.status as never } : {}), ...(sp.q ? { OR: [{ name: ci(sp.q) }, { shortDescription: ci(sp.q) }] } : {}) };
+  const [cs, total, ps] = await Promise.all([db.category.findMany({ orderBy: { name: "asc" } }), db.product.count({ where }), db.product.findMany({ where, include: { category: true }, orderBy: { createdAt: "desc" }, skip, take })]);
+  return <><h1>Products</h1><ToastForm action={saveProduct} okMsg="Product draft created." className="mt-6 flex flex-wrap gap-2"><input name="name" required placeholder="Product name" /><SearchSelect name="categoryId" required placeholder="Category" options={cs.map(c => ({ value: c.id, label: c.name }))} /><input name="shortDescription" placeholder="Short description" /><SubmitButton>Create draft</SubmitButton></ToastForm>
+    <div className="mt-6"><FilterBar placeholder="Search products…" fields={[{ name: "category", label: "Category", options: cs.map(c => ({ value: c.id, label: c.name })) }, { name: "status", label: "Status", options: [{value:"DRAFT",label:"DRAFT"},{value:"PUBLISHED",label:"PUBLISHED"},{value:"ARCHIVED",label:"ARCHIVED"}] }]} /></div>
+    <div className="adm-scroll mt-4"><table><thead><tr><th>Product</th><th>Category</th><th>Status</th><th>Action</th></tr></thead><tbody>{ps.map(p => <tr key={p.id}><td><Link className="underline" href={`/admin/products/${p.id}`}>{p.name}</Link></td><td>{p.category.name}</td><td><Badge s={p.status} /></td><td><ToastForm action={setStatus.bind(null, "product", p.id, p.status === "PUBLISHED" ? "DRAFT" : "PUBLISHED")} okMsg="Visibility updated."><SubmitButton className="underline">{p.status === "PUBLISHED" ? "Unpublish" : "Publish"}</SubmitButton></ToastForm></td></tr>)}</tbody></table></div>
+    {ps.length === 0 && <p className="mt-4 text-stone">No products match.</p>}<Pagination total={total} per={take} page={page} path="/admin/products" params={sp} /></>; }

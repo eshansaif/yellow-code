@@ -30,6 +30,7 @@ enum Role {
   ADMIN
   EDITOR
   SALES
+  ACCOUNTS
 }
 
 enum ImageType {
@@ -200,6 +201,18 @@ model QuoteRequest {
   createdAt DateTime @default(now())
   @@index([status, createdAt])
   @@index([email])
+  approval        ApprovalStatus @default(DRAFT)
+  currency        String         @default("USD")
+  discountType     DiscountType        @default(PERCENT)
+  discountValue     Decimal        @default(0) @db.Decimal(14, 2)
+  taxPct          Decimal        @default(0) @db.Decimal(5, 2)
+  validUntil      DateTime?
+  terms           String?
+  approvedById    String?
+  approvedAt      DateTime?
+  rejectionReason String?
+  lines           QuoteLine[]
+  salesOrder      SalesOrder?
 }
 
 model QuoteItem {
@@ -294,4 +307,193 @@ model PageContent {
 model SiteSetting {
   key String @id
   value Json
+}
+
+enum ApprovalStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+}
+
+enum OrderStatus {
+  OPEN
+  CONFIRMED
+  IN_PRODUCTION
+  READY
+  SHIPPED
+  COMPLETED
+  CANCELLED
+}
+
+enum BillingStatus {
+  UNBILLED
+  BILLED
+}
+
+enum OrderSource {
+  QUOTATION
+  DIRECT
+}
+
+enum OrderTrade {
+  LOCAL
+  IMPORT
+}
+
+model QuoteLine {
+  id          String       @id @default(cuid())
+  quoteId     String
+  quote       QuoteRequest @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  description String
+  qty         Decimal      @db.Decimal(12, 2)
+  unit        String       @default("pcs")
+  unitPrice   Decimal      @db.Decimal(14, 4)
+  sortOrder   Int          @default(0)
+
+  @@index([quoteId])
+}
+
+model Customer {
+  id        String       @id @default(cuid())
+  name      String
+  company   String
+  email     String
+  phone     String?
+  country   String?
+  address   String?
+  taxId     String?
+  orders    SalesOrder[]
+  createdAt DateTime     @default(now())
+
+  @@index([email])
+}
+
+model SalesOrder {
+  id            String           @id @default(cuid())
+  seq           Int              @unique @default(autoincrement())
+  customerId    String
+  customer      Customer         @relation(fields: [customerId], references: [id])
+  quoteId       String?          @unique
+  quote         QuoteRequest?    @relation(fields: [quoteId], references: [id])
+  source        OrderSource
+  trade         OrderTrade       @default(LOCAL)
+  status        OrderStatus      @default(OPEN)
+  billingStatus BillingStatus    @default(UNBILLED)
+  currency      String           @default("USD")
+  discountType   DiscountType          @default(PERCENT)
+  discountValue   Decimal          @default(0) @db.Decimal(14, 2)
+  taxPct        Decimal          @default(0) @db.Decimal(5, 2)
+  customerPo    String?
+  paymentTerms  String?
+  orderDate     DateTime         @default(now())
+  deliveryDate  DateTime?
+  notes         String?
+  createdById   String
+  lines         SalesOrderLine[]
+  createdAt     DateTime         @default(now())
+
+  @@index([status, billingStatus])
+  @@index([customerId])
+  invoices      Invoice[]
+}
+
+model SalesOrderLine {
+  id          String     @id @default(cuid())
+  orderId     String
+  order       SalesOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  description String
+  qty         Decimal    @db.Decimal(12, 2)
+  unit        String     @default("pcs")
+  unitPrice   Decimal    @db.Decimal(14, 4)
+  sortOrder   Int        @default(0)
+
+  @@index([orderId])
+}
+
+enum InvoiceType {
+  LOCAL
+  PROFORMA
+}
+
+enum InvoiceStatus {
+  ISSUED
+  SENT
+  PAID
+  VOID
+}
+
+model Invoice {
+  id              String        @id @default(cuid())
+  seq             Int           @unique @default(autoincrement())
+  number          String        @unique
+  publicToken     String        @unique @default(cuid())
+  type            InvoiceType
+  status          InvoiceStatus @default(ISSUED)
+  orderId         String
+  order           SalesOrder    @relation(fields: [orderId], references: [id])
+  customerName    String
+  contactName     String
+  customerEmail   String
+  customerAddress String?
+  customerTaxId   String?
+  customerCountry String?
+  currency        String
+  discountType     DiscountType
+  discountValue     Decimal       @db.Decimal(14, 2)
+  taxPct          Decimal       @db.Decimal(5, 2)
+  customerPo      String?
+  paymentTerms    String?
+  issueDate       DateTime      @default(now())
+  dueDate         DateTime?
+  lcNumber        String?
+  portOfLoading   String?
+  portOfDischarge String?
+  incoterm        String?
+  notes           String?
+  company         Json
+  billId          String?
+  bill            Bill?         @relation(fields: [billId], references: [id])
+  lines           InvoiceLine[]
+  emailedAt       DateTime?
+  emailedTo       String?
+  paidAt          DateTime?
+  voidedAt        DateTime?
+  voidReason      String?
+  createdById     String
+  createdAt       DateTime      @default(now())
+
+  @@index([type, status])
+  @@index([orderId])
+  @@index([createdAt])
+  @@index([billId])
+}
+
+model InvoiceLine {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  description String
+  qty         Decimal @db.Decimal(12, 2)
+  unit        String  @default("pcs")
+  unitPrice   Decimal @db.Decimal(14, 4)
+  sortOrder   Int     @default(0)
+
+  @@index([invoiceId])
+}
+
+model Bill {
+  id          String    @id @default(cuid())
+  seq         Int       @unique @default(autoincrement())
+  number      String    @unique
+  createdById String
+  invoices    Invoice[]
+  createdAt   DateTime  @default(now())
+
+  @@index([createdAt])
+}
+
+enum DiscountType {
+  PERCENT
+  FIXED
 }

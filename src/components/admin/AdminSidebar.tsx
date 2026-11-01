@@ -2,10 +2,10 @@
 import Link from "next/link"; import { usePathname } from "next/navigation"; import { useEffect, useState } from "react";
 const groups: [string, [string, string][]][] = [
   ["Overview", [["/admin", "Dashboard"]]],
-  ["Sales", [["/admin/quotes", "Quote requests"], ["/admin/messages", "Messages"], ["/admin/clients", "Clients"]]],
+  ["Sales", [["/admin/quotes", "Quote requests"], ["/admin/sales-orders", "Sales orders"], ["/admin/customers", "Customers"], ["/admin/invoices", "Invoices"], ["/admin/billing", "Bill generation"], ["/admin/messages", "Messages"], ["/admin/clients", "Clients"]]],
   ["Catalogue", [["/admin/products", "Products"], ["/admin/categories", "Categories"], ["/admin/services", "Services"], ["/admin/media", "Media library"]]],
-  ["Content", [["/admin/homepage", "Homepage"], ["/admin/pages", "Pages"], ["/admin/articles", "Resources"], ["/admin/certifications", "Certifications"], ["/admin/navigation", "Footer and links"], ["/admin/settings", "Contact settings"]]],
-  ["System", [["/admin/users", "Users"]]],
+  ["Content", [["/admin/homepage", "Homepage"], ["/admin/pages", "Pages"], ["/admin/articles", "Resources"], ["/admin/certifications", "Certifications"], ["/admin/process", "Process steps"], ["/admin/navigation", "Footer and links"], ["/admin/settings", "Contact settings"]]],
+  ["System", [["/admin/company", "Company profile"], ["/admin/users", "Users"]]],
 ];
 export default function AdminSidebar({ name, role, signOutSlot }: { name: string; role: string; signOutSlot: React.ReactNode }) {
   const path = usePathname(); const [open, setOpen] = useState(false);

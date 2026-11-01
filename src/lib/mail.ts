@@ -5,3 +5,9 @@ export async function sendMail(to: string | string[], subject: string, html: str
     body: JSON.stringify({ from: process.env.MAIL_FROM, to, subject, html }) }).catch(() => {});
 }
 export const esc = (s: unknown) => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
+
+export async function sendMailStrict(to: string | string[], subject: string, html: string) {
+  if (!process.env.RESEND_API_KEY || !process.env.MAIL_FROM) throw new Error("Email is not configured. Set RESEND_API_KEY and MAIL_FROM.");
+  const r = await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" }, body: JSON.stringify({ from: process.env.MAIL_FROM, to, subject, html }) });
+  if (!r.ok) throw new Error("The email provider rejected the message.");
+}

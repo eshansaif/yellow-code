@@ -1,11 +1,11 @@
-import Link from "next/link"; import { db } from "@/lib/db";
-export const revalidate = 300; export const metadata = { title: "Products", alternates: { canonical: "/products" } };
-export default async function Products() {
-  const cats = await db.category.findMany({ where:{status:"PUBLISHED"}, orderBy:{sortOrder:"asc"}, include:{ products:{ where:{status:"PUBLISHED"}, orderBy:{sortOrder:"asc"} } } });
-  return <main className="max-w-7xl mx-auto px-6 py-16">
-    <h1 className="text-5xl font-semibold tracking-tight">Products</h1>
-    {cats.length===0 && <p className="mt-8 text-stone">No products published yet.</p>}
-    {cats.map(c=><section key={c.id} className="mt-14"><h2 className="text-2xl font-bold"><Link href={`/products/${c.slug}`}>{c.name}</Link></h2>
-      <ul className="mt-4 grid md:grid-cols-3 gap-4">{c.products.map(p=><li key={p.id} className="rounded-2xl border border-line bg-white p-5"><Link className="font-semibold hover:underline" href={`/products/${c.slug}/${p.slug}`}>{p.name}</Link><p className="text-sm text-stone mt-1">{p.shortDescription}</p></li>)}</ul></section>)}
-  </main>;
-}
+import { db } from "@/lib/db"; import FilterBar from "@/components/FilterBar"; import Pagination from "@/components/Pagination"; import ProductCard from "@/components/ProductCard"; import { pg, ci, type SP } from "@/lib/list";
+export const metadata = { title: "Products", alternates: { canonical: "/products" } };
+export default async function Products({ searchParams }: { searchParams: Promise<SP> }) { const sp = await searchParams; const { page, skip, take } = pg(sp, 12);
+  const where = { status: "PUBLISHED" as const, ...(sp.category ? { category: { slug: sp.category } } : {}), ...(sp.application ? { applications: { some: { name: sp.application } } } : {}), ...(sp.q ? { OR: [{ name: ci(sp.q) }, { shortDescription: ci(sp.q) }] } : {}) };
+  const [cats, apps, total, items] = await Promise.all([db.category.findMany({ where: { status: "PUBLISHED" }, orderBy: { sortOrder: "asc" }, select: { slug: true, name: true } }),
+    db.productApplication.findMany({ where: { product: { status: "PUBLISHED" } }, distinct: ["name"], select: { name: true }, orderBy: { name: "asc" } }), db.product.count({ where }),
+    db.product.findMany({ where, include: { category: true, images: { include: { media: true }, orderBy: { sortOrder: "asc" }, take: 1 } }, orderBy: sp.sort === "az" ? [{ name: "asc" }] : [{ featured: "desc" }, { sortOrder: "asc" }, { createdAt: "desc" }], skip, take })]);
+  const fields = [{ name: "category", label: "Category", options: cats.map(c => ({ value: c.slug, label: c.name })) }, ...(apps.length ? [{ name: "application", label: "Application", options: apps.map(a => ({ value: a.name, label: a.name })) }] : []), { name: "sort", label: "Sort", options: [{ value: "az", label: "Name A to Z" }] }];
+  return <main className="mx-auto max-w-7xl px-6 py-14"><h1 className="text-4xl font-semibold md:text-6xl">Products</h1><div className="mt-8"><FilterBar fields={fields} placeholder="Search products…" /></div>
+    {items.length === 0 ? <p className="mt-12 text-stone">No products match your filters.</p> : <ul className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{items.map(p => <li key={p.id}><ProductCard href={`/products/${p.category.slug}/${p.slug}`} name={p.name} desc={p.shortDescription} category={p.category.name} img={p.images[0] ? { url: p.images[0].media.url, alt: p.images[0].media.alt } : null} /></li>)}</ul>}
+    <Pagination total={total} per={take} page={page} path="/products" params={sp} /></main>; }
