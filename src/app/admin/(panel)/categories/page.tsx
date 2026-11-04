@@ -1,9 +1,0 @@
-import { db } from "@/lib/db"; import FilterBar from "@/components/FilterBar"; import Pagination from "@/components/Pagination"; import Badge from "@/components/admin/Badge"; import SubmitButton from "@/components/admin/SubmitButton"; import { pg, ci, type SP } from "@/lib/list";
-import { ToastForm } from "@/components/admin/ToastForm"; import { saveCategory, setStatus } from "../actions";
-export default async function C({ searchParams }: { searchParams: Promise<SP> }) { const sp = await searchParams; const { page, skip, take } = pg(sp, 15);
-  const where = { ...(sp.status ? { status: sp.status as never } : {}), ...(sp.q ? { OR: [{ name: ci(sp.q) }, { description: ci(sp.q) }] } : {}) };
-  const [total, cs] = await Promise.all([db.category.count({ where }), db.category.findMany({ where, orderBy: { sortOrder: "asc" }, skip, take })]);
-  return <><h1>Categories</h1><ToastForm action={saveCategory} okMsg="Category draft created." className="mt-6 flex flex-wrap gap-2"><input name="name" required placeholder="Category name" /><input name="description" placeholder="Description" /><SubmitButton>Create draft</SubmitButton></ToastForm>
-    <div className="mt-6"><FilterBar placeholder="Search categories…" fields={[{ name: "status", label: "Status", options: [{value:"DRAFT",label:"DRAFT"},{value:"PUBLISHED",label:"PUBLISHED"},{value:"ARCHIVED",label:"ARCHIVED"}] }]} /></div>
-    <div className="adm-scroll mt-4"><table><thead><tr><th>Category</th><th>Status</th><th>Action</th></tr></thead><tbody>{cs.map(c => <tr key={c.id}><td>{c.name}</td><td><Badge s={c.status} /></td><td><ToastForm action={setStatus.bind(null, "category", c.id, c.status === "PUBLISHED" ? "DRAFT" : "PUBLISHED")} okMsg="Visibility updated."><SubmitButton className="underline">{c.status === "PUBLISHED" ? "Unpublish" : "Publish"}</SubmitButton></ToastForm></td></tr>)}</tbody></table></div>
-    <Pagination total={total} per={take} page={page} path="/admin/categories" params={sp} /></>; }

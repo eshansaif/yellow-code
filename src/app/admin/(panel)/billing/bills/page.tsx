@@ -1,6 +1,0 @@
-import Link from "next/link"; import { db } from "@/lib/db"; import Pagination from "@/components/Pagination"; import { pg, type SP } from "@/lib/list";
-export default async function Bills({ searchParams }: { searchParams: Promise<SP> }) { const sp = await searchParams; const { page, skip, take } = pg(sp, 15);
-  const [total, rows] = await Promise.all([db.bill.count(), db.bill.findMany({ orderBy: { createdAt: "desc" }, include: { invoices: { select: { status: true, emailedAt: true } } }, skip, take })]);
-  return <><div className="flex flex-wrap items-center justify-between gap-3"><h1>Generated bills</h1><Link href="/admin/billing" className="rounded-full border border-ink px-5 py-2 text-sm font-semibold">Back to bill generation</Link></div>
-    <div className="adm-scroll mt-6"><table><thead><tr><th>Bill</th><th>Date</th><th>Invoices</th><th>Emailed</th></tr></thead><tbody>{rows.map(b => <tr key={b.id}><td><Link className="underline" href={`/admin/billing/bills/${b.id}`}>{b.number}</Link></td><td>{b.createdAt.toLocaleDateString("en-GB")}</td><td>{b.invoices.length}</td><td>{b.invoices.filter(i => i.emailedAt).length} / {b.invoices.length}</td></tr>)}</tbody></table></div>
-    {rows.length === 0 && <p className="mt-4 text-stone">No bills generated yet.</p>}<Pagination total={total} per={take} page={page} path="/admin/billing/bills" params={sp} /></>; }
