@@ -3,7 +3,10 @@ import Link from "next/link"; import { usePathname } from "next/navigation"; imp
 const groups: [string, [string, string][]][] = [
   ["Overview", [["/admin", "Dashboard"]]],
   ["Sales", [["/admin/quotes", "Quote requests"], ["/admin/sales-orders", "Sales orders"], ["/admin/customers", "Customers"], ["/admin/invoices", "Invoices"], ["/admin/billing", "Bill generation"], ["/admin/messages", "Messages"], ["/admin/clients", "Clients"]]],
+<<<<<<< HEAD
   ["Insights", [["/admin/reports", "Reports"]]],
+=======
+>>>>>>> d9fed78e03f868a9b4e58ed4836b94388798d1cc
   ["Catalogue", [["/admin/products", "Products"], ["/admin/categories", "Categories"], ["/admin/services", "Services"], ["/admin/media", "Media library"]]],
   ["Content", [["/admin/homepage", "Homepage"], ["/admin/pages", "Pages"], ["/admin/articles", "Resources"], ["/admin/certifications", "Certifications"], ["/admin/process", "Process steps"], ["/admin/navigation", "Footer and links"], ["/admin/settings", "Contact settings"]]],
   ["System", [["/admin/company", "Company profile"], ["/admin/users", "Users"]]],

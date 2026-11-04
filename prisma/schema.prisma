@@ -419,11 +419,15 @@ enum InvoiceType {
 enum InvoiceStatus {
   ISSUED
   SENT
+<<<<<<< HEAD
   PARTIAL
+=======
+>>>>>>> d9fed78e03f868a9b4e58ed4836b94388798d1cc
   PAID
   VOID
 }
 
+<<<<<<< HEAD
 enum PaymentMethod {
   CASH
   BANK_TRANSFER
@@ -433,6 +437,8 @@ enum PaymentMethod {
   OTHER
 }
 
+=======
+>>>>>>> d9fed78e03f868a9b4e58ed4836b94388798d1cc
 model Invoice {
   id              String        @id @default(cuid())
   seq             Int           @unique @default(autoincrement())
@@ -465,7 +471,10 @@ model Invoice {
   billId          String?
   bill            Bill?         @relation(fields: [billId], references: [id])
   lines           InvoiceLine[]
+<<<<<<< HEAD
   payments        Payment[]
+=======
+>>>>>>> d9fed78e03f868a9b4e58ed4836b94388798d1cc
   emailedAt       DateTime?
   emailedTo       String?
   paidAt          DateTime?
@@ -493,6 +502,7 @@ model InvoiceLine {
   @@index([invoiceId])
 }
 
+<<<<<<< HEAD
 model Payment {
   id           String        @id @default(cuid())
   invoiceId    String
@@ -509,6 +519,8 @@ model Payment {
   @@index([paidAt])
 }
 
+=======
+>>>>>>> d9fed78e03f868a9b4e58ed4836b94388798d1cc
 model Bill {
   id          String    @id @default(cuid())
   seq         Int       @unique @default(autoincrement())

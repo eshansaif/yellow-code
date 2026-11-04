@@ -1,6 +1,10 @@
 # Yellow Code Trims
 
+<<<<<<< HEAD
 Company website + admin panel (CMS, quote requests, sales orders, invoices, payments, billing, reports) for a garments-trims manufacturer.
+=======
+Company website + admin panel (CMS, quote requests, sales orders, invoices, billing) for a garments-trims manufacturer.
+>>>>>>> d9fed78e03f868a9b4e58ed4836b94388798d1cc
 
 ## Quick start (local)
 
@@ -30,6 +34,7 @@ Cloudinary if its 3 keys are set, else **Vercel Blob** (`BLOB_READ_WRITE_TOKEN`)
 - Orders phase 1 (priced quotes, approval, sales orders): `npx prisma migrate dev --name orders_phase1` (additive only).
 - Orders phase 2 (invoices): `npx prisma migrate dev --name invoices_phase2`. Set the company profile in Admin > Company profile before issuing.
 - Orders phase 3+4 (bill generation, dashboard): `npx prisma migrate dev --name billing_phase3`.
+<<<<<<< HEAD
 - v6 (payments, reports, search): `npx prisma migrate deploy` applies `20261103111718_payments_and_partial_status` automatically (adds the `Payment` table, `PARTIAL` invoice status and backfills one synthetic payment for every invoice that was marked paid earlier).
 
 Access: Sales orders, Invoices, Bill generation and Reports are visible to ADMIN, SALES and ACCOUNTS; recording payments is ADMIN and ACCOUNTS only; Company profile to ADMIN and ACCOUNTS; EDITOR is redirected.
@@ -49,6 +54,10 @@ Record payments on a local invoice from the invoice page or its sales-order page
 ## Reports
 
 `/admin/reports` — Sales, Receivables (aging), Collections, Sales by item, Customer statement, Business pipeline. Filters + CSV export on each.
+=======
+
+Access: Sales orders, Invoices and Bill generation are visible to ADMIN, SALES and ACCOUNTS; Company profile to ADMIN and ACCOUNTS; EDITOR is redirected.
+>>>>>>> d9fed78e03f868a9b4e58ed4836b94388798d1cc
 
 Fresh database: delete `prisma/migrations` if present, `npx prisma migrate dev --name init` (y to reset), `npx prisma db seed`.
 Discounts support percentage or fixed amount (discountType/discountValue). Customers module at `/admin/customers`.

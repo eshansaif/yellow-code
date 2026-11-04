@@ -8,7 +8,10 @@ const LABEL: Record<string, string> = {
   taxPct: "Tax", currency: "Currency", validUntil: "Valid until", deliveryDate: "Delivery date",
   legalName: "Legal company name", title: "Title", password: "Password", role: "Role", reason: "Reason",
   body: "Note", alt: "Alt text", to: "Recipient", customerPo: "Customer PO", paymentTerms: "Payment terms",
+<<<<<<< HEAD
   amount: "Amount", method: "Payment method", reference: "Reference", paidAt: "Payment date", note: "Note", siteUrl: "Public site URL",
+=======
+>>>>>>> d9fed78e03f868a9b4e58ed4836b94388798d1cc
 };
 // Turns any thrown error into a readable sentence (zod issues get field labels).
 export function friendly(e: unknown): string {

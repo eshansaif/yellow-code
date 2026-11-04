@@ -1,9 +1,12 @@
 # Deploy guide — local run, Neon DB, Vercel (free tier)
 
+<<<<<<< HEAD
 > **Version: v7.** See `VERSION.txt` for the full history. Quick check that you
 > are running the latest build: log in to the admin panel — the sidebar footer
 > shows "Yellow Code admin · v7".
 
+=======
+>>>>>>> d9fed78e03f868a9b4e58ed4836b94388798d1cc
 Two ways to run this project:
 
 1. **Locally** — for development.
@@ -121,11 +124,15 @@ Later updates: `git push` → Vercel redeploys automatically.
 ## 4. First-run checklist inside the app
 
 1. `/admin/company` — fill the **Company profile** (legal name is required before any invoice can be issued).
+<<<<<<< HEAD
    - Set **Public site URL** here too (e.g. `https://your-app.vercel.app`). Customer invoice links and the button inside invoice emails use it. Priority: Company profile → `NEXT_PUBLIC_SITE_URL` env → localhost fallback.
+=======
+>>>>>>> d9fed78e03f868a9b4e58ed4836b94388798d1cc
 2. `/admin/settings` — real contact details.
 3. `/admin/users` — create accounts for sales / accounts staff.
 4. Publish categories/products, then set them live.
 
+<<<<<<< HEAD
 ## 5. What's new in v6
 
 - **Payments** — record payments against local invoices (Admin/Accounts) from the invoice page or the sales-order page: amount, method (bank transfer, cash, cheque, mobile banking, card, other), reference/TRX ID, date and note. Invoice status becomes PARTIAL / PAID automatically; deleting a payment recalculates the status. Invoices that were marked paid before this update got one auto-recorded payment (method "Other") via migration `20261103111718_payments_and_partial_status`.
@@ -140,6 +147,13 @@ Later updates: `git push` → Vercel redeploys automatically.
 | `P3018` / `42710: type "Status" already exists` on migrate deploy | The database already has objects but no migration history (after `db push` or a partial setup), so the DB is stuck in "failed migration" state. If the data is disposable: `npx prisma migrate reset --force`. To keep the data: `npx prisma migrate resolve --applied 20261101101810_init`, then `npx prisma db push`, then `npx prisma migrate status`. Against Neon always use only `migrate deploy` — never mix with `db push`. |
 | `Transaction API error: Transaction not found` | You are running migrations or old code against the **pooled** URL. Migrate with the direct URL; redeploy the latest code (no interactive transactions). |
 | Customer invoice links / email buttons point to `localhost:3000` | The link base is taken from **Admin > Company profile > Public site URL** first, then the `NEXT_PUBLIC_SITE_URL` env var, then the localhost fallback. Set the Public site URL in the Company profile (e.g. `https://yellow-code.vercel.app`) and redeploy nothing — links update immediately. |
+=======
+## 5. Common issues
+
+| Symptom | Fix |
+| --- | --- |
+| `Transaction API error: Transaction not found` | You are running migrations or old code against the **pooled** URL. Migrate with the direct URL; redeploy the latest code (no interactive transactions). |
+>>>>>>> d9fed78e03f868a9b4e58ed4836b94388798d1cc
 | Upload fails with "No storage configured" | Set `BLOB_READ_WRITE_TOKEN` (Vercel Blob) or the three Cloudinary keys. |
 | Emails don't arrive | Set `RESEND_API_KEY` + `MAIL_FROM`. Resend requires verifying your domain to send from it; `onboarding@resend.dev` only sends to your own email. |
 | `P1001: can't reach database` | Wrong `DATABASE_URL` host/sslmode; check the Neon dashboard. |

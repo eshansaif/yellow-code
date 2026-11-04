@@ -1,14 +1,28 @@
+<<<<<<< HEAD
 import Link from "next/link"; import { notFound } from "next/navigation"; import { db } from "@/lib/db"; import { auth } from "@/auth"; import { soRef } from "@/lib/money"; import { publicUrl, getSiteBase, DEFAULT_SITE_URL } from "@/lib/invoice";
 import Badge from "@/components/admin/Badge"; import SubmitButton from "@/components/admin/SubmitButton"; import InvoiceDocument from "@/components/InvoiceDocument"; import PaymentsPanel from "@/components/admin/PaymentsPanel"; import { ToastForm } from "@/components/admin/ToastForm"; import { emailInvoice, voidInvoice } from "@/app/admin/(panel)/invoice-actions";
 export default async function InvoiceDetail({ params }: { params: Promise<{ id: string }> }) { const { id } = await params;
   const [inv, s, base] = await Promise.all([db.invoice.findUnique({ where: { id }, include: { lines: { orderBy: { sortOrder: "asc" } }, payments: { orderBy: { paidAt: "asc" } }, order: true } }), auth(), getSiteBase()]); if (!inv) notFound();
   const role = (s?.user as { role?: string } | undefined)?.role ?? ""; const can = role === "ADMIN" || role === "ACCOUNTS"; const orderRef = soRef(inv.order.seq, inv.order.createdAt);
   const link = publicUrl(inv.publicToken, base);
+=======
+import Link from "next/link"; import { notFound } from "next/navigation"; import { db } from "@/lib/db"; import { auth } from "@/auth"; import { soRef } from "@/lib/money"; import { publicUrl } from "@/lib/invoice";
+import Badge from "@/components/admin/Badge"; import SubmitButton from "@/components/admin/SubmitButton"; import InvoiceDocument from "@/components/InvoiceDocument"; import { ToastForm } from "@/components/admin/ToastForm"; import { emailInvoice, markPaid, voidInvoice } from "@/app/admin/(panel)/invoice-actions";
+export default async function InvoiceDetail({ params }: { params: Promise<{ id: string }> }) { const { id } = await params;
+  const [inv, s] = await Promise.all([db.invoice.findUnique({ where: { id }, include: { lines: { orderBy: { sortOrder: "asc" } }, order: true } }), auth()]); if (!inv) notFound();
+  const role = (s?.user as { role?: string } | undefined)?.role ?? ""; const can = role === "ADMIN" || role === "ACCOUNTS"; const orderRef = soRef(inv.order.seq, inv.order.createdAt);
+>>>>>>> d9fed78e03f868a9b4e58ed4836b94388798d1cc
   return <><div className="flex flex-wrap items-center gap-3"><h1>{inv.number}</h1><Badge s={inv.type} /><Badge s={inv.status} /></div>
     <p className="mt-1 text-sm text-stone">Order <Link className="underline" href={`/admin/sales-orders/${inv.orderId}`}>{orderRef}</Link>{inv.emailedAt && <> · Emailed to {inv.emailedTo} on {inv.emailedAt.toLocaleDateString("en-GB")}</>}{inv.voidReason && <> · Void: {inv.voidReason}</>}</p>
     <div className="mt-5 flex flex-wrap items-start gap-3"><Link href={`/admin/print/${id}`} target="_blank" className="rounded-full border border-ink px-5 py-2 text-sm font-semibold">Print / PDF</Link>
       {can && inv.status !== "VOID" && <ToastForm action={emailInvoice.bind(null, id)} okMsg="Email sent." className="flex gap-2"><input name="to" type="email" defaultValue={inv.customerEmail} aria-label="Send to" /><SubmitButton>{inv.emailedAt ? "Resend email" : "Send by email"}</SubmitButton></ToastForm>}
+<<<<<<< HEAD
       {can && inv.status !== "VOID" && inv.status !== "PAID" && <ToastForm action={voidInvoice.bind(null, id)} confirm="Void this invoice? The order becomes unbilled again." okMsg="Invoice void." className="flex gap-2"><input name="reason" required minLength={3} placeholder="Reason to void" /><SubmitButton className="!border-red-300 !bg-white !text-red-700">Void</SubmitButton></ToastForm>}</div>
     <p className="mt-3 break-all text-xs text-stone">Customer link: <a className="underline" href={link} target="_blank" rel="noreferrer">{link}</a>{base === DEFAULT_SITE_URL && <span className="mt-1 block">This still points to localhost. Set your live domain in <Link className="underline" href="/admin/company">Company profile → Public site URL</Link> and customer links will use it everywhere (page + emails).</span>}</p>
     <PaymentsPanel inv={inv} can={can} />
+=======
+      {can && inv.type === "LOCAL" && (inv.status === "ISSUED" || inv.status === "SENT") && <ToastForm action={markPaid.bind(null, id)} okMsg="Invoice marked as paid."><SubmitButton>Mark as paid</SubmitButton></ToastForm>}
+      {can && inv.status !== "VOID" && inv.status !== "PAID" && <ToastForm action={voidInvoice.bind(null, id)} confirm="Void this invoice? The order becomes unbilled again." okMsg="Invoice void." className="flex gap-2"><input name="reason" required minLength={3} placeholder="Reason to void" /><SubmitButton>Void</SubmitButton></ToastForm>}</div>
+    <p className="mt-3 break-all text-xs text-stone">Customer link: {publicUrl(inv.publicToken)}</p>
+>>>>>>> d9fed78e03f868a9b4e58ed4836b94388798d1cc
     <div className="mt-6 overflow-x-auto rounded-2xl border border-line bg-white p-4"><InvoiceDocument inv={inv} orderRef={orderRef} /></div></>; }

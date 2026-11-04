@@ -5,7 +5,11 @@ const CARD = "rounded-2xl border border-[#e7e0d2] bg-white p-5 shadow-[0_1px_2px
 const F = ({ n, l, v, t = "text", r }: { n: string; l: string; v: string; t?: string; r?: boolean }) => <label className="block text-sm">{l}{r && <span className="text-red-600"> *</span>}<input name={n} type={t} defaultValue={v} required={r} className="mt-1" /></label>;
 export default function QuoteEditForm({ q, id, products, action }: { q: Q; id: string; products: { value: string; label: string }[]; action: (p: { error?: string } | null, fd: FormData) => Promise<{ error?: string } | null> }) {
   const [state, formAction] = useActionState(action, null); const [p, setP] = usePricing({ lines: q.lines, currency: q.currency, discountType: q.discountType, discountValue: q.discountValue, taxPct: q.taxPct });
+<<<<<<< HEAD
   return <form action={formAction} className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]"><PricingHidden p={p} />
+=======
+  return <form action={formAction} className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]"><PricingHidden p={p} />
+>>>>>>> d9fed78e03f868a9b4e58ed4836b94388798d1cc
     <div className="space-y-6">{state?.error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{state.error}</p>}
       <section className={CARD}><h2>Customer</h2><div className="mt-4 grid gap-4 sm:grid-cols-2"><F n="name" l="Name" v={q.name} r /><F n="company" l="Company" v={q.company} r /><F n="email" l="Email" v={q.email} t="email" r /><F n="phone" l="Phone" v={q.phone} r /><F n="country" l="Country" v={q.country} r /><F n="city" l="City" v={q.city} /></div></section>
       <section className={CARD}><h2>Line items</h2><div className="mt-4"><LineItems p={p} set={setP} products={products} /></div></section>

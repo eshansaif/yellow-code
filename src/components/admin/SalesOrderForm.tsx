@@ -8,7 +8,11 @@ const F = ({ n, l, t = "text", r, ph }: { n: string; l: string; t?: string; r?: 
 export default function SalesOrderForm({ customers, products, action }: { customers: Cust[]; products: { value: string; label: string }[]; action: (p: { error?: string } | null, fd: FormData) => Promise<{ error?: string } | null> }) {
   const [state, formAction] = useActionState(action, null); const [mode, setMode] = useState<"existing" | "new">(customers.length ? "existing" : "new"); const [cid, setCid] = useState(""); const [p, setP] = usePricing(); const sel = customers.find(c => c.id === cid);
   const tab = (m: "existing" | "new", l: string) => <button type="button" onClick={() => setMode(m)} aria-pressed={mode === m} className={`adm-plain rounded-full border px-4 py-1.5 text-sm font-medium ${mode === m ? "border-[#16130d] bg-[#16130d] text-white" : "border-[#e7e0d2] bg-white"}`}>{l}</button>;
+<<<<<<< HEAD
   return <form action={formAction} className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]"><input type="hidden" name="customerMode" value={mode} /><PricingHidden p={p} />
+=======
+  return <form action={formAction} className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]"><input type="hidden" name="customerMode" value={mode} /><PricingHidden p={p} />
+>>>>>>> d9fed78e03f868a9b4e58ed4836b94388798d1cc
     <div className="space-y-6 lg:col-start-1">
       {state?.error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{state.error}</p>}
       <section className={CARD}><Step n={1} t="Customer" d="Pick a customer you already have, or add a new one right here." /><div className="mb-4 flex flex-wrap gap-2">{tab("existing", "Existing customer")}{tab("new", "New customer")}</div>
