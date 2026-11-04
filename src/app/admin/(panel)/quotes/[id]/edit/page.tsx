@@ -1,0 +1,8 @@
+import Link from "next/link"; import { notFound } from "next/navigation"; import { db } from "@/lib/db"; import QuoteEditForm from "@/components/admin/QuoteEditForm"; import { saveQuoteEdit } from "@/app/admin/(panel)/commercial-actions";
+export default async function Edit({ params }: { params: Promise<{ id: string }> }) { const { id } = await params;
+  const [q, ps] = await Promise.all([db.quoteRequest.findUnique({ where: { id }, include: { lines: { orderBy: { sortOrder: "asc" } } } }), db.product.findMany({ where: { status: { not: "ARCHIVED" } }, select: { name: true, category: { select: { name: true } } }, orderBy: { name: "asc" }, take: 2000 })]); if (!q) notFound();
+  if (q.approval === "APPROVED" || q.approval === "PENDING_APPROVAL") return <><h1>Quotation locked</h1><p className="mt-3 text-sm text-stone">Approved or pending quotations cannot be edited.</p><Link className="underline" href={`/admin/quotes/${id}`}>Back</Link></>;
+  return <><div className="mb-6"><h1>Edit and price quotation</h1><p className="text-sm text-[#6b6a66]">{q.company} · {q.email}</p></div>
+    <QuoteEditForm id={id} action={saveQuoteEdit.bind(null, id)} products={ps.map(p => ({ value: p.name, label: `${p.name} · ${p.category.name}` }))}
+      q={{ name: q.name, company: q.company, email: q.email, phone: q.phone, country: q.country, city: q.city ?? "", validUntil: q.validUntil?.toISOString().slice(0, 10) ?? "", terms: q.terms ?? "", currency: q.currency, discountType: q.discountType, discountValue: String(Number(q.discountValue)), taxPct: String(Number(q.taxPct)),
+        lines: q.lines.map(l => ({ id: l.id, product: "", description: l.description, qty: String(Number(l.qty)), unit: l.unit, unitPrice: String(Number(l.unitPrice)) })) }} /></>; }

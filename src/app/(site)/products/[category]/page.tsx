@@ -1,11 +1,12 @@
-import Link from "next/link"; import { notFound } from "next/navigation"; import { db } from "@/lib/db";
-export const revalidate = 300;
-export async function generateMetadata({ params }:{params:Promise<{category:string}>}) { const { category } = await params;
-  const c = await db.category.findUnique({ where:{slug:category} }); return { title: c?.seoTitle ?? c?.name, description: c?.seoDescription ?? c?.description ?? undefined, alternates:{canonical:`/products/${category}`} }; }
-export default async function Cat({ params }:{params:Promise<{category:string}>}) { const { category } = await params;
-  const c = await db.category.findUnique({ where:{slug:category, status:"PUBLISHED"}, include:{products:{where:{status:"PUBLISHED"},orderBy:{sortOrder:"asc"}}} });
-  if (!c) notFound();
-  return <main className="max-w-7xl mx-auto px-6 py-16"><nav aria-label="Breadcrumb" className="text-sm text-stone"><Link href="/products">Products</Link> / {c.name}</nav>
-    <h1 className="mt-4 text-5xl font-semibold">{c.name}</h1><p className="mt-4 max-w-xl text-stone">{c.description}</p>
-    <ul className="mt-10 grid md:grid-cols-3 gap-4">{c.products.map(p=><li key={p.id} className="rounded-2xl border border-line bg-white p-6 min-h-40"><Link className="text-xl font-bold hover:underline" href={`/products/${c.slug}/${p.slug}`}>{p.name}</Link><p className="mt-2 text-sm text-stone">{p.shortDescription}</p></li>)}</ul></main>;
-}
+import Link from "next/link"; import { notFound } from "next/navigation"; import { db } from "@/lib/db"; import FilterBar from "@/components/FilterBar"; import Pagination from "@/components/Pagination"; import ProductCard from "@/components/ProductCard"; import { pg, ci, type SP } from "@/lib/list";
+type P = { params: Promise<{ category: string }>; searchParams: Promise<SP> };
+export async function generateMetadata({ params }: P) { const { category } = await params; const c = await db.category.findUnique({ where: { slug: category } }); return { title: c?.seoTitle ?? c?.name, description: c?.seoDescription ?? c?.description ?? undefined, alternates: { canonical: `/products/${category}` } }; }
+export default async function Cat({ params, searchParams }: P) { const { category } = await params; const sp = await searchParams; const { page, skip, take } = pg(sp, 12);
+  const c = await db.category.findFirst({ where: { slug: category, status: "PUBLISHED" } }); if (!c) notFound();
+  const where = { status: "PUBLISHED" as const, categoryId: c.id, ...(sp.application ? { applications: { some: { name: sp.application } } } : {}), ...(sp.q ? { OR: [{ name: ci(sp.q) }, { shortDescription: ci(sp.q) }] } : {}) };
+  const [apps, total, items] = await Promise.all([db.productApplication.findMany({ where: { product: { status: "PUBLISHED", categoryId: c.id } }, distinct: ["name"], select: { name: true }, orderBy: { name: "asc" } }), db.product.count({ where }),
+    db.product.findMany({ where, include: { images: { include: { media: true }, orderBy: { sortOrder: "asc" }, take: 1 } }, orderBy: [{ sortOrder: "asc" }, { name: "asc" }], skip, take })]);
+  return <main className="mx-auto max-w-7xl px-6 py-14"><nav aria-label="Breadcrumb" className="text-sm text-stone"><Link href="/products">Products</Link> / {c.name}</nav><h1 className="mt-4 text-4xl font-semibold md:text-6xl">{c.name}</h1><p className="mt-4 max-w-xl text-stone">{c.description}</p>
+    <div className="mt-8"><FilterBar placeholder={`Search ${c.name}…`} fields={apps.length ? [{ name: "application", label: "Application", options: apps.map(a => ({ value: a.name, label: a.name })) }] : []} /></div>
+    {items.length === 0 ? <p className="mt-12 text-stone">No products match your filters.</p> : <ul className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{items.map(p => <li key={p.id}><ProductCard href={`/products/${c.slug}/${p.slug}`} name={p.name} desc={p.shortDescription} category={c.name} img={p.images[0] ? { url: p.images[0].media.url, alt: p.images[0].media.alt } : null} /></li>)}</ul>}
+    <Pagination total={total} per={take} page={page} path={`/products/${c.slug}`} params={sp} /></main>; }

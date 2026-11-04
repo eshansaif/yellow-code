@@ -1,5 +1,8 @@
-import SubmitButton from "@/components/admin/SubmitButton";
-import { db } from "@/lib/db"; import { toggleMessage } from "../actions";
-export default async function M() { const ms = await db.contactMessage.findMany({ orderBy:{createdAt:"desc"}, take:100 });
-  return <><h1 className="text-3xl font-bold">Contact messages</h1>{ms.length===0&&<p className="mt-6 text-stone">No messages yet.</p>}<ul className="mt-6 space-y-4">{ms.map(m=><li key={m.id} className="border border-line p-4 text-sm"><b>{m.name}</b> · {m.email}{m.phone&&` · ${m.phone}`} <span className="text-stone">{m.createdAt.toLocaleString()}</span><p className="mt-2 whitespace-pre-line">{m.message}</p>
-    <form action={toggleMessage.bind(null,m.id,!m.handled)}><SubmitButton className="mt-2 underline">{m.handled?"Mark unhandled":"Mark handled"}</SubmitButton></form></li>)}</ul></>; }
+import { db } from "@/lib/db"; import FilterBar from "@/components/FilterBar"; import Pagination from "@/components/Pagination"; import Badge from "@/components/admin/Badge"; import SubmitButton from "@/components/admin/SubmitButton"; import { pg, ci, type SP } from "@/lib/list";
+import { ToastForm } from "@/components/admin/ToastForm"; import { toggleMessage } from "../actions";
+export default async function M({ searchParams }: { searchParams: Promise<SP> }) { const sp = await searchParams; const { page, skip, take } = pg(sp, 10);
+  const where = { ...(sp.state === "open" ? { handled: false } : sp.state === "done" ? { handled: true } : {}), ...(sp.q ? { OR: [{ name: ci(sp.q) }, { email: ci(sp.q) }, { message: ci(sp.q) }] } : {}) };
+  const [total, ms] = await Promise.all([db.contactMessage.count({ where }), db.contactMessage.findMany({ where, orderBy: { createdAt: "desc" }, skip, take })]);
+  return <><h1>Contact messages</h1><div className="mt-4"><FilterBar placeholder="Search messages" fields={[{ name: "state", label: "State", options: [{ value: "open", label: "Unhandled" }, { value: "done", label: "Handled" }] }]} /></div>{ms.length === 0 && <p className="mt-6 text-stone">No messages match.</p>}
+    <ul className="mt-6 space-y-4">{ms.map(m => <li key={m.id} className="rounded-xl border border-line bg-white p-4 text-sm"><b>{m.name}</b> · {m.email}{m.phone && ` · ${m.phone}`} <span className="text-stone">{m.createdAt.toLocaleString("en-GB")}</span> {m.handled && <Badge s="COMPLETED" />}<p className="mt-2 whitespace-pre-line">{m.message}</p><ToastForm action={toggleMessage.bind(null, m.id, !m.handled)}><SubmitButton className="mt-2 underline">{m.handled ? "Mark unhandled" : "Mark handled"}</SubmitButton></ToastForm></li>)}</ul>
+    <Pagination total={total} per={take} page={page} path="/admin/messages" params={sp} /></>; }

@@ -8,7 +8,9 @@
   "postinstall": "prisma generate",
   "db:migrate": "prisma migrate dev",
   "db:deploy": "prisma migrate deploy",
-  "db:seed": "prisma db seed"
+  "db:seed": "prisma db seed",
+  "db:baseline": "node prisma/scripts/fix-migrations.mjs baseline",
+  "db:delta": "node prisma/scripts/fix-migrations.mjs delta"
  },
  "prisma": {
   "seed": "tsx prisma/seed.ts"

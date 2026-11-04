@@ -6,13 +6,17 @@ const steps = ["Contact", "Project", "Requirements", "Files & notes", "Review"] 
 const inp = "mt-1.5 w-full rounded-lg border border-line bg-white px-3.5 py-2.5 text-[15px] outline-none transition focus:border-ink focus:ring-4 focus:ring-yc/40";
 const labels: Record<string, string> = { name: "Name", company: "Company", email: "Email", phone: "Phone / WhatsApp", country: "Country", quantity: "Quantity", unit: "Unit", deadline: "Delivery date", "details.material": "Material", "details.size": "Size", "details.colour": "Colour", "details.finish": "Finish / backing", message: "Notes" };
 type Errs = Record<string, string[] | undefined>;
-function F({ n, label, type = "text", req, err, hint, span }: { n: string; label: string; type?: string; req?: boolean; err?: string[]; hint?: string; span?: boolean }) {
+function F({ n, label, type = "text", req, err, hint, span, v, set }: { n: string; label: string; type?: string; req?: boolean; err?: string[]; hint?: string; span?: boolean; v: string; set: (n: string, s: string) => void }) {
   return <label className={`block ${span ? "md:col-span-2" : ""}`}><span className="text-sm font-medium">{label}{req && <span className="text-red-600"> *</span>}</span>
-    <input name={n} type={type} required={req} aria-invalid={!!err} className={inp} />{hint && <span className="mt-1 block text-xs text-stone">{hint}</span>}
+    <input name={n} type={type} required={req} value={v} onChange={e => set(n, e.target.value)} aria-invalid={!!err} className={inp} />{hint && <span className="mt-1 block text-xs text-stone">{hint}</span>}
     {err && <span role="alert" className="mt-1 block text-sm text-red-700">{err[0]}</span>}</label>;
 }
 export default function QuoteForm({ product }: { product?: { id: string; name: string } | null }) {
   const [state, action, pending] = useActionState(submitQuote, null); const [step, setStep] = useState(0); const [sum, setSum] = useState<[string, string][]>([]); const form = useRef<HTMLFormElement>(null);
+  // Controlled values: React 19 resets uncontrolled inputs after a form action, which wiped
+  // everything the customer typed when validation failed. Values kept in state survive that.
+  const [vals, setVals] = useState<Record<string, string>>({}); const set = (n: string, s: string) => setVals(p => ({ ...p, [n]: s }));
+  const [consent, setConsent] = useState(false);
   const e: Errs = state && "errors" in state ? (state.errors as Errs) ?? {} : {};
   useEffect(() => { if (state?.ok) track("quote_form_completed", { mode: product ? "product" : "general" }); if (state && "errors" in state) setStep(0); }, [state, product]);
   if (state?.ok) return <div role="status" className="rounded-3xl border border-line bg-white p-8 md:p-12 shadow-sm">
@@ -34,15 +38,15 @@ export default function QuoteForm({ product }: { product?: { id: string; name: s
     {product && <p className="mb-6 rounded-xl bg-paper px-4 py-3 text-sm">Requesting a quote for <b>{product.name}</b></p>}
     {state && "errors" in state && <p role="alert" className="mb-6 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">Please check the highlighted fields.</p>}
     <fieldset className={show(0)}><legend className="mb-5 text-2xl font-semibold md:col-span-2">Who are we quoting for?</legend>
-      <F n="name" label="Full name" req err={e.name} /><F n="company" label="Company" req err={e.company} /><F n="email" label="Business email" type="email" req err={e.email} /><F n="phone" label="Phone / WhatsApp" req err={e.phone} /><F n="country" label="Country" req err={e.country} /><F n="jobTitle" label="Job title" /></fieldset>
+      <F set={set} v={vals.name ?? ""} n="name" label="Full name" req err={e.name} /><F set={set} v={vals.company ?? ""} n="company" label="Company" req err={e.company} /><F set={set} v={vals.email ?? ""} n="email" label="Business email" type="email" req err={e.email} /><F set={set} v={vals.phone ?? ""} n="phone" label="Phone / WhatsApp" req err={e.phone} /><F set={set} v={vals.country ?? ""} n="country" label="Country" req err={e.country} /><F set={set} v={vals.jobTitle ?? ""} n="jobTitle" label="Job title" /></fieldset>
     <fieldset className={show(1)}><legend className="mb-5 text-2xl font-semibold md:col-span-2">Tell us about the project</legend>
-      <F n="quantity" label="Quantity" type="number" /><F n="unit" label="Unit" hint="pcs, sets, rolls…" /><F n="deadline" label="Required delivery date" type="date" span /></fieldset>
+      <F set={set} v={vals.quantity ?? ""} n="quantity" label="Quantity" type="number" /><F set={set} v={vals.unit ?? ""} n="unit" label="Unit" hint="pcs, sets, rolls…" /><F set={set} v={vals.deadline ?? ""} n="deadline" label="Required delivery date" type="date" span /></fieldset>
     <fieldset className={show(2)}><legend className="mb-5 text-2xl font-semibold md:col-span-2">Product requirements</legend><p className="text-sm text-stone md:col-span-2">Not sure? Write “Need guidance” and we'll help you choose.</p>
-      <F n="details.material" label="Material" /><F n="details.size" label="Size" /><F n="details.colour" label="Colour" /><F n="details.finish" label="Finish / backing" /></fieldset>
+      <F set={set} v={vals["details.material"] ?? ""} n="details.material" label="Material" /><F set={set} v={vals["details.size"] ?? ""} n="details.size" label="Size" /><F set={set} v={vals["details.colour"] ?? ""} n="details.colour" label="Colour" /><F set={set} v={vals["details.finish"] ?? ""} n="details.finish" label="Finish / backing" /></fieldset>
     <fieldset className={show(3)}><legend className="mb-5 text-2xl font-semibold md:col-span-2">Files and notes</legend>
       <label className="block md:col-span-2"><span className="text-sm font-medium">Artwork</span><input type="file" name="files" multiple accept=".ai,.eps,.pdf,.svg,.png,.jpg,.jpeg,.zip" className="mt-1.5 block w-full rounded-lg border border-dashed border-line bg-paper p-4 text-sm file:mr-4 file:rounded-full file:border-0 file:bg-ink file:px-4 file:py-2 file:text-paper" /><span className="mt-1 block text-xs text-stone">AI, EPS, PDF, SVG, PNG, JPG or ZIP, up to 4 MB each.</span></label>
-      <label className="block md:col-span-2"><span className="text-sm font-medium">Notes</span><textarea name="message" rows={4} className={inp} /></label>
-      <label className="flex gap-3 text-sm md:col-span-2"><input type="checkbox" name="consent" required className="mt-1 size-4 accent-black" /><span>I agree to Yellow Code contacting me about this request.</span></label>
+      <label className="block md:col-span-2"><span className="text-sm font-medium">Notes</span><textarea name="message" rows={4} value={vals.message ?? ""} onChange={e => set("message", e.target.value)} className={inp} /></label>
+      <label className="flex gap-3 text-sm md:col-span-2"><input type="checkbox" name="consent" required checked={consent} onChange={e => setConsent(e.target.checked)} className="mt-1 size-4 accent-black" /><span>I agree to Yellow Code contacting me about this request.</span></label>
       {e.consent && <p role="alert" className="text-sm text-red-700 md:col-span-2">{e.consent[0]}</p>}</fieldset>
     <fieldset className={`${step === 4 ? "block" : "hidden"}`}><legend className="mb-5 text-2xl font-semibold">Review your request</legend>
       <dl className="divide-y divide-line rounded-xl border border-line">{sum.map(([k, v]) => <div key={k} className="grid grid-cols-3 gap-4 px-4 py-3 text-sm"><dt className="text-stone">{k}</dt><dd className="col-span-2 break-words">{v}</dd></div>)}</dl>

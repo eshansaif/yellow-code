@@ -1,18 +1,18 @@
 "use client";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 export type Opt = { value: string; label: string };
-export default function SearchSelect({ name, options, defaultValue = "", placeholder = "Select…", required = false }: { name: string; options: Opt[]; defaultValue?: string; placeholder?: string; required?: boolean }) {
+export default function SearchSelect({ name, options, defaultValue = "", placeholder = "Select…", required = false, onChange, compact = false }: { onChange?: (v: string) => void; name: string; options: Opt[]; defaultValue?: string; placeholder?: string; required?: boolean; compact?: boolean }) {
   const [val, setVal] = useState(defaultValue), [q, setQ] = useState(""), [open, setOpen] = useState(false), [hi, setHi] = useState(0);
   const id = useId(), root = useRef<HTMLDivElement>(null), sel = options.find(o => o.value === val);
   const list = useMemo(() => options.filter(o => o.label.toLowerCase().includes(q.toLowerCase())), [options, q]);
   useEffect(() => { const c = (e: MouseEvent) => { if (!root.current?.contains(e.target as Node)) { setOpen(false); setQ(""); } }; document.addEventListener("mousedown", c); return () => document.removeEventListener("mousedown", c); }, []);
-  const pick = (o: Opt) => { setVal(o.value); setQ(""); setOpen(false); };
+  const pick = (o: Opt) => { onChange?.(o.value); setVal(o.value); setQ(""); setOpen(false); };
   const key = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") { e.preventDefault(); setOpen(true); setHi(h => Math.min(h + 1, list.length - 1)); }
     else if (e.key === "ArrowUp") { e.preventDefault(); setHi(h => Math.max(h - 1, 0)); }
     else if (e.key === "Enter" && open) { e.preventDefault(); if (list[hi]) pick(list[hi]); }
     else if (e.key === "Escape") { setOpen(false); setQ(""); } };
-  return <div ref={root} className="relative min-w-48">
+  return <div ref={root} className={`relative ${compact ? "min-w-0" : "min-w-48"}`}>
     <input type="hidden" name={name} value={val} />
     <input role="combobox" aria-expanded={open} aria-controls={id} aria-autocomplete="list" required={required} autoComplete="off" placeholder={placeholder}
       value={open ? q : sel?.label ?? ""} onFocus={() => { setOpen(true); setHi(0); }} onChange={e => { setQ(e.target.value); setHi(0); setOpen(true); }} onKeyDown={key}
